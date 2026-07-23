@@ -1,0 +1,141 @@
+pipeline {
+    agent { label 'ecs-agent' }
+    
+    environment {
+        AWS_REGION = 'eu-west-1'
+        S3_BUCKET = 'pluspluspharmacy-dev-frontend'
+        CLOUDFRONT_DISTRIBUTION_ID = 'E3IMBS7VIPKCF0'
+        NODE_VERSION = '20'
+    }
+    
+    stages {
+        stage('Checkout Code') {
+            steps {
+                echo 'Getting the latest code from repository...'
+                checkout scm
+                script {
+                    // Set the path where our frontend files are located
+                    env.WORKSPACE_PATH = "${WORKSPACE}/app/frontend"
+                    sh 'printenv'
+                }
+            }
+        }
+        
+        // stage('Setup Node.js') {
+        //     steps {
+        //         echo 'Setting up Node.js environment...'
+        //         sh '''
+        //             # Install Node.js
+        //             curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        //             sudo apt-get install -y nodejs
+                    
+        //             # Verify installation
+        //             node --version
+        //             npm --version
+        //         '''
+        //     }
+        // }
+        
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing frontend dependencies...'
+                dir('app/frontend') {
+                    sh '''
+                        npm install
+                    '''
+                }
+            }
+        }
+        
+        stage('Build Frontend') {
+            steps {
+                echo 'Building the React application...'
+                dir('app/frontend') {
+                    sh '''
+                        # Set environment variables for the build
+                        export VITE_AUTH_API="https://api.junioraicoders.com/api/auth"
+                        export VITE_COURSE_API="https://api.junioraicoders.com/api/courses"
+                        export VITE_ENROLL_API="https://api.junioraicoders.com/api/enroll"
+                        
+                        # Build the application
+                        npm run build
+                        
+                        # Check if build was successful
+                        if [ -d "dist" ]; then
+                            echo "Build successful! Files created in dist folder"
+                            ls -la dist/
+                        else
+                            echo "Build failed! No dist folder found"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+        
+        stage('Upload to S3') {
+            steps {
+                echo 'Uploading files to S3 bucket...'
+                dir('app/frontend') {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                        sh '''
+                            # Upload all files to S3 (AWS CLI assumed to be pre-installed)
+                            aws s3 sync dist/ s3://${S3_BUCKET}/ --delete
+                            
+                            echo "Files uploaded to S3 successfully!"
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Invalidate CloudFront Cache') {
+            steps {
+                echo 'Clearing CloudFront cache...'
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                    sh '''
+                        # Create invalidation for all files
+                        aws cloudfront create-invalidation \
+                            --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} \
+                            --paths "/*"
+                        
+                        echo "CloudFront cache invalidation created!"
+                    '''
+                }
+            }
+        }
+        
+        stage('Verify Deployment') {
+            steps {
+                echo 'Checking if deployment was successful...'
+                sh '''
+                    # Wait a moment for CloudFront to process
+                    sleep 30
+                    
+                    # Check if the main page loads
+                    if curl -f -s https://junioraicoders.com > /dev/null; then
+                        echo "✅ Frontend is accessible at https://junioraicoders.com"
+                    else
+                        echo "❌ Frontend is not accessible yet"
+                        echo "This might be normal - CloudFront can take a few minutes to update"
+                    fi
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            deleteDir()
+        }
+        success {
+            echo '🎉 Frontend deployment successful!'
+            echo 'Your website should be available at: https://www.junioraicoders.com'
+        }
+        failure {
+            echo '❌ Frontend deployment failed!'
+            echo 'Check the logs above for error details'
+        }
+    }
+}

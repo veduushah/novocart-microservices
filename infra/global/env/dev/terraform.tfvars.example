@@ -1,0 +1,35 @@
+# Copy to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region = "eu-west-1"
+
+# Domain Configuration
+domain_name        = "example.com"
+create_hosted_zone = true
+
+# CloudFront Configuration
+cloudfront_subdomain = "www"
+
+# ALB Configuration
+alb_subdomain = "api"
+
+# CNAME Configuration (optional)
+create_cname_record = false
+# cname_name  = "blog"
+# cname_value = "ghs.googlehosted.com"
+
+# MX Records for Email (optional)
+mx_records = []
+# mx_records = ["10 mail.example.com"]
+
+# TXT Records for Domain Verification (optional)
+txt_records = []
+txt_name    = ""
+
+tags = {
+  Environment = "dev"
+  Project     = "global-infrastructure"
+  ManagedBy   = "terraform"
+  Component   = "global"
+  Owner       = "devops-team"
+}

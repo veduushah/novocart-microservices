@@ -1,0 +1,228 @@
+pipeline {
+    agent {
+        label 'ecs-agent'
+    }
+    
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'stage', 'prod'],
+            description: 'Target environment for deployment'
+        )
+        choice(
+            name: 'ACTION',
+            choices: ['create', 'delete'],
+            description: 'Choose action: create infrastructure or delete infrastructure'
+        )
+        booleanParam(
+            name: 'AUTO_APPROVE',
+            defaultValue: false,
+            description: 'Auto-approve terraform apply (use with caution)'
+        )
+        string(
+            name: 'TERRAFORM_VERSION',
+            defaultValue: '1.5.0',
+            description: 'Terraform version to use'
+        )
+    }
+    
+    environment {
+        TF_VAR_environment = "${params.ENVIRONMENT}"
+        AWS_DEFAULT_REGION = 'eu-west-1'
+        TF_STATE_BUCKET = 'your-org-terraform-state-bucket'
+        TF_STATE_KEY = "global/${params.ENVIRONMENT}/terraform-global.tfstate"
+        TF_STATE_REGION = 'eu-west-1'
+        TF_DYNAMODB_TABLE = 'terraform-state-lock'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.WORKSPACE_PATH = "${WORKSPACE}/infra/global/env/${params.ENVIRONMENT}"
+                }
+            }
+        }
+        
+        stage('Verify Terraform') {
+            steps {
+                script {
+                    sh """
+                        cd ${env.WORKSPACE_PATH}
+                        terraform version
+                    """
+                }
+            }
+        }
+        
+        stage('Terraform Init') {
+            steps {
+                script {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                        sh """
+                            cd ${env.WORKSPACE_PATH}
+                            
+                            # Create backend configuration with a timestamp to ensure fresh state
+                            TIMESTAMP=\$(date +%Y%m%d%H%M%S)
+                            cat > backend.tf << EOF
+terraform {
+  backend "s3" {
+    bucket         = "${env.TF_STATE_BUCKET}"
+    key            = "${env.TF_STATE_KEY}"
+    region         = "${env.TF_STATE_REGION}"
+    encrypt        = true
+    dynamodb_table = "${env.TF_DYNAMODB_TABLE}"
+    use_lockfile   = true
+  }
+}
+EOF
+                            
+                            # Clean any existing local state files that might cause conflicts
+                            rm -f terraform.tfstate* .terraform.lock.hcl
+                            
+                            # Remove any existing .terraform directory to force fresh initialization
+                            rm -rf .terraform
+                            
+                            # Initialize Terraform with completely fresh state
+                            terraform init
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                        if (params.ACTION == 'delete') {
+                            sh """
+                                cd ${env.WORKSPACE_PATH}
+                                # Create a destroy plan file showing what will be deleted
+                                terraform plan -destroy -out=tfplan-${params.ENVIRONMENT}.out
+                            """
+                        } else {
+                            sh """
+                                cd ${env.WORKSPACE_PATH}
+                                # Create a plan file showing what will be created/changed
+                                terraform plan -out=tfplan-${params.ENVIRONMENT}.out
+                            """
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: "infra/global/env/dev/tfplan-${params.ENVIRONMENT}.out", fingerprint: true
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                        if (params.ACTION == 'delete') {
+                            if (params.AUTO_APPROVE) {
+                                sh """
+                                    cd ${env.WORKSPACE_PATH}
+                                    terraform apply -auto-approve tfplan-${params.ENVIRONMENT}.out
+                                """
+                            } else {
+                                input message: "⚠️ DANGER: Ready to DELETE global infrastructure for ${params.ENVIRONMENT}? This action cannot be undone!", ok: 'Yes, Delete'
+                                sh """
+                                    cd ${env.WORKSPACE_PATH}
+                                    terraform apply tfplan-${params.ENVIRONMENT}.out
+                                """
+                            }
+                        } else {
+                            if (params.AUTO_APPROVE) {
+                                sh """
+                                    cd ${env.WORKSPACE_PATH}
+                                    terraform apply -auto-approve tfplan-${params.ENVIRONMENT}.out
+                                """
+                            } else {
+                                input message: "Apply Terraform changes for ${params.ENVIRONMENT} environment?", ok: 'Apply'
+                                sh """
+                                    cd ${env.WORKSPACE_PATH}
+                                    terraform apply tfplan-${params.ENVIRONMENT}.out
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Output Values') {
+            steps {
+                script {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                        if (params.ACTION == 'delete') {
+                            sh """
+                                cd ${env.WORKSPACE_PATH}
+                                echo "=== Global Infrastructure Deleted Successfully ==="
+                                echo "All global resources for ${params.ENVIRONMENT} environment have been destroyed."
+                            """
+                        } else {
+                            sh """
+                                cd ${env.WORKSPACE_PATH}
+                                echo "=== Global Infrastructure Created Successfully ==="
+                                # Show all the outputs from Terraform
+                                terraform output
+                                # Also save outputs to a JSON file
+                                terraform output -json > terraform-outputs.json
+                            """
+                        }
+                    }
+                }
+                // Save the outputs file as an artifact (only for create action)
+                script {
+                    if (params.ACTION == 'create') {
+                        archiveArtifacts artifacts: "infra/global/env/dev/terraform-outputs.json", fingerprint: true
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                sh """
+                    cd ${env.WORKSPACE_PATH}
+                    rm -f tfplan-${params.ENVIRONMENT}.out
+                """
+            }
+        }
+        success {
+            script {
+                if (params.ACTION == 'delete') {
+                    echo "✅ Global infrastructure deleted successfully for ${params.ENVIRONMENT}!"
+                } else {
+                    echo "✅ Global infrastructure created successfully for ${params.ENVIRONMENT}!"
+                }
+            }
+        }
+        failure {
+            script {
+                if (params.ACTION == 'delete') {
+                    echo "❌ Global infrastructure deletion failed for ${params.ENVIRONMENT}"
+                } else {
+                    echo "❌ Global infrastructure creation failed for ${params.ENVIRONMENT}"
+                }
+            }
+            echo "Check the build logs for more details: ${env.BUILD_URL}"
+        }
+        unstable {
+            script {
+                if (params.ACTION == 'delete') {
+                    echo "⚠️ Global infrastructure deletion completed with warnings for ${params.ENVIRONMENT}"
+                } else {
+                    echo "⚠️ Global infrastructure creation completed with warnings for ${params.ENVIRONMENT}"
+                }
+            }
+        }
+    }
+}

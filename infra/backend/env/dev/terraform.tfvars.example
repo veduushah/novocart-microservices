@@ -1,0 +1,52 @@
+# Copy to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region = "eu-west-1"
+vpc_name   = "backend-dev-vpc"
+vpc_cidr   = "10.2.0.0/16"
+
+public_subnet_cidrs = {
+  "eu-west-1a" = "10.2.1.0/24"
+  "eu-west-1b" = "10.2.2.0/24"
+  "eu-west-1c" = "10.2.3.0/24"
+}
+
+private_subnet_cidrs = {
+  "eu-west-1a" = "10.2.10.0/24"
+  "eu-west-1b" = "10.2.20.0/24"
+  "eu-west-1c" = "10.2.30.0/24"
+}
+
+cluster_name    = "backend-dev-cluster"
+cluster_version = "1.28"
+
+cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"] # Restrict in production
+log_retention_days                   = 7
+
+node_groups = {
+  main = {
+    instance_types = ["t3.medium"]
+    ami_type       = "AL2_x86_64"
+    capacity_type  = "ON_DEMAND"
+    scaling_config = {
+      desired_size = 2
+      max_size     = 4
+      min_size     = 1
+    }
+    update_config = {
+      max_unavailable_percentage = 25
+    }
+    tags = {
+      NodeGroup = "main"
+      Component = "backend"
+    }
+  }
+}
+
+tags = {
+  Environment = "dev"
+  Project     = "backend-infrastructure"
+  ManagedBy   = "terraform"
+  Component   = "backend"
+  Owner       = "devops-team"
+}

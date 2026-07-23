@@ -1,0 +1,22 @@
+# Copy to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region = "eu-west-1"
+
+# S3 Configuration
+s3_bucket_name       = "your-project-dev-frontend"
+s3_enable_versioning = true
+
+# CloudFront Configuration
+enable_cloudfront            = true
+cloudfront_distribution_name = "frontend-dev-distribution"
+cloudfront_comment           = "CloudFront distribution for frontend dev environment"
+cloudfront_price_class       = "PriceClass_100"
+
+tags = {
+  Environment = "dev"
+  Project     = "frontend-infrastructure"
+  ManagedBy   = "terraform"
+  Component   = "frontend"
+  Owner       = "devops-team"
+}

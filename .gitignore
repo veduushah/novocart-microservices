@@ -1,0 +1,40 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env*.example
+**/secrets.yaml
+!**/secrets.example.yaml
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+target/
+**/target/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Terraform state and local config (never commit real values)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+**/terraform.tfvars
+!**/terraform.tfvars.example
+**/backend.tf
+**/terraform-outputs.json
+**/tfplan-*.out

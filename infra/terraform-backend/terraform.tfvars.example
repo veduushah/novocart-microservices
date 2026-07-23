@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region          = "eu-west-1"
+state_bucket_name   = "your-org-terraform-state-bucket"
+dynamodb_table_name = "terraform-state-lock"
+
+tags = {
+  Project     = "terraform-backend"
+  ManagedBy   = "terraform"
+  Environment = "shared"
+  Owner       = "devops-team"
+}
