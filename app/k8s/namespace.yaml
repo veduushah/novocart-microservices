@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: cloudblitz
+  name: novocart
   labels:
-    name: cloudblitz
+    name: novocart
     environment: production

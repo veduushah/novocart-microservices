@@ -7,7 +7,7 @@ pipeline {
         AWS_REGION = 'us-east-1'
         EKS_CLUSTER_NAME = 'backend-dev-cluster'
         DOCKER_REGISTRY = '207837001318.dkr.ecr.eu-west-1.amazonaws.com'
-        KUBE_NAMESPACE = 'cloudblitz'
+        KUBE_NAMESPACE = 'novocart'
     }
     
     stages {
@@ -29,20 +29,20 @@ pipeline {
                         '''
                     }
                 }
-                stage('Build Course Service') {
+                stage('Build Product Service') {
                     steps {
-                        echo 'Building course-service...'
+                        echo 'Building product-service...'
                         sh '''
-                            cd app/backend/course-service
+                            cd app/backend/product-service
                             ./mvnw clean package -DskipTests
                         '''
                     }
                 }
-                stage('Build Enrollment Service') {
+                stage('Build Order Service') {
                     steps {
-                        echo 'Building enrollment-service...'
+                        echo 'Building order-service...'
                         sh '''
-                            cd app/backend/enrollment-service
+                            cd app/backend/order-service
                             ./mvnw clean package -DskipTests
                         '''
                     }
@@ -66,31 +66,31 @@ pipeline {
                         }
                     }
                 }
-                stage('Test Course Service') {
+                stage('Test Product Service') {
                     steps {
-                        echo 'Testing course-service...'
+                        echo 'Testing product-service...'
                         sh '''
-                            cd app/backend/course-service
+                            cd app/backend/product-service
                             ./mvnw test
                         '''
                     }
                     post {
                         always {
-                            publishTestResults testResultsPattern: 'app/backend/course-service/target/surefire-reports/*.xml'
+                            publishTestResults testResultsPattern: 'app/backend/product-service/target/surefire-reports/*.xml'
                         }
                     }
                 }
-                stage('Test Enrollment Service') {
+                stage('Test Order Service') {
                     steps {
-                        echo 'Testing enrollment-service...'
+                        echo 'Testing order-service...'
                         sh '''
-                            cd app/backend/enrollment-service
+                            cd app/backend/order-service
                             ./mvnw test
                         '''
                     }
                     post {
                         always {
-                            publishTestResults testResultsPattern: 'app/backend/enrollment-service/target/surefire-reports/*.xml'
+                            publishTestResults testResultsPattern: 'app/backend/order-service/target/surefire-reports/*.xml'
                         }
                     }
                 }
@@ -113,47 +113,47 @@ pipeline {
                     steps {
                         script {
                             def imageTag = "${env.BUILD_NUMBER}"
-                            def fullImageName = "${DOCKER_REGISTRY}/cloudblitz/auth-service:${imageTag}"
+                            def fullImageName = "${DOCKER_REGISTRY}/novocart/auth-service:${imageTag}"
                             
                             sh """
                                 cd app/backend/auth-service
                                 sudo docker build -t ${fullImageName} .
-                                sudo docker tag ${fullImageName} ${DOCKER_REGISTRY}/cloudblitz/auth-service:latest
+                                sudo docker tag ${fullImageName} ${DOCKER_REGISTRY}/novocart/auth-service:latest
                             """
                             
                             env.AUTH_DOCKER_IMAGE = fullImageName
                         }
                     }
                 }
-                stage('Build Course Service Image') {
+                stage('Build Product Service Image') {
                     steps {
                         script {
                             def imageTag = "${env.BUILD_NUMBER}"
-                            def fullImageName = "${DOCKER_REGISTRY}/cloudblitz/course-service:${imageTag}"
+                            def fullImageName = "${DOCKER_REGISTRY}/novocart/product-service:${imageTag}"
                             
                             sh """
-                                cd app/backend/course-service
+                                cd app/backend/product-service
                                 sudo docker build -t ${fullImageName} .
-                                sudo docker tag ${fullImageName} ${DOCKER_REGISTRY}/cloudblitz/course-service:latest
+                                sudo docker tag ${fullImageName} ${DOCKER_REGISTRY}/novocart/product-service:latest
                             """
                             
-                            env.COURSE_DOCKER_IMAGE = fullImageName
+                            env.PRODUCT_DOCKER_IMAGE = fullImageName
                         }
                     }
                 }
-                stage('Build Enrollment Service Image') {
+                stage('Build Order Service Image') {
                     steps {
                         script {
                             def imageTag = "${env.BUILD_NUMBER}"
-                            def fullImageName = "${DOCKER_REGISTRY}/cloudblitz/enrollment-service:${imageTag}"
+                            def fullImageName = "${DOCKER_REGISTRY}/novocart/order-service:${imageTag}"
                             
                             sh """
-                                cd app/backend/enrollment-service
+                                cd app/backend/order-service
                                 sudo docker build -t ${fullImageName} .
-                                sudo docker tag ${fullImageName} ${DOCKER_REGISTRY}/cloudblitz/enrollment-service:latest
+                                sudo docker tag ${fullImageName} ${DOCKER_REGISTRY}/novocart/order-service:latest
                             """
                             
-                            env.ENROLLMENT_DOCKER_IMAGE = fullImageName
+                            env.ORDER_DOCKER_IMAGE = fullImageName
                         }
                     }
                 }
@@ -176,23 +176,23 @@ pipeline {
                     steps {
                         sh """
                             sudo docker push ${AUTH_DOCKER_IMAGE}
-                            sudo docker push ${DOCKER_REGISTRY}/cloudblitz/auth-service:latest
+                            sudo docker push ${DOCKER_REGISTRY}/novocart/auth-service:latest
                         """
                     }
                 }
-                stage('Push Course Service Image') {
+                stage('Push Product Service Image') {
                     steps {
                         sh """
-                            sudo docker push ${COURSE_DOCKER_IMAGE}
-                            sudo docker push ${DOCKER_REGISTRY}/cloudblitz/course-service:latest
+                            sudo docker push ${PRODUCT_DOCKER_IMAGE}
+                            sudo docker push ${DOCKER_REGISTRY}/novocart/product-service:latest
                         """
                     }
                 }
-                stage('Push Enrollment Service Image') {
+                stage('Push Order Service Image') {
                     steps {
                         sh """
-                            sudo docker push ${ENROLLMENT_DOCKER_IMAGE}
-                            sudo docker push ${DOCKER_REGISTRY}/cloudblitz/enrollment-service:latest
+                            sudo docker push ${ORDER_DOCKER_IMAGE}
+                            sudo docker push ${DOCKER_REGISTRY}/novocart/order-service:latest
                         """
                     }
                 }
@@ -212,20 +212,20 @@ pipeline {
                         kubectl apply -f app/k8s/configmap.yaml
                         
                         # Update image tags in deployments
-                        sed -i 's|image: cloudblitz/auth-service:latest|image: ${AUTH_DOCKER_IMAGE}|g' app/backend/auth-service/k8s/deployment.yaml
-                        sed -i 's|image: cloudblitz/course-service:latest|image: ${COURSE_DOCKER_IMAGE}|g' app/backend/course-service/k8s/deployment.yaml
-                        sed -i 's|image: cloudblitz/enrollment-service:latest|image: ${ENROLLMENT_DOCKER_IMAGE}|g' app/backend/enrollment-service/k8s/deployment.yaml
+                        sed -i 's|image: novocart/auth-service:latest|image: ${AUTH_DOCKER_IMAGE}|g' app/backend/auth-service/k8s/deployment.yaml
+                        sed -i 's|image: novocart/product-service:latest|image: ${PRODUCT_DOCKER_IMAGE}|g' app/backend/product-service/k8s/deployment.yaml
+                        sed -i 's|image: novocart/order-service:latest|image: ${ORDER_DOCKER_IMAGE}|g' app/backend/order-service/k8s/deployment.yaml
                         
                         # Apply all Kubernetes manifests
                         kubectl apply -f app/backend/auth-service/k8s/
-                        kubectl apply -f app/backend/course-service/k8s/
-                        kubectl apply -f app/backend/enrollment-service/k8s/
+                        kubectl apply -f app/backend/product-service/k8s/
+                        kubectl apply -f app/backend/order-service/k8s/
                         kubectl apply -f app/k8s/ingress.yaml
                         
                         # Wait for all deployments to be ready
                         kubectl rollout status deployment/auth-service -n ${KUBE_NAMESPACE} --timeout=300s
-                        kubectl rollout status deployment/course-service -n ${KUBE_NAMESPACE} --timeout=300s
-                        kubectl rollout status deployment/enrollment-service -n ${KUBE_NAMESPACE} --timeout=300s
+                        kubectl rollout status deployment/product-service -n ${KUBE_NAMESPACE} --timeout=300s
+                        kubectl rollout status deployment/order-service -n ${KUBE_NAMESPACE} --timeout=300s
                     """
                 }
             }
@@ -238,8 +238,8 @@ pipeline {
                     sh """
                         # Wait for all pods to be ready
                         kubectl wait --for=condition=ready pod -l app=auth-service -n ${KUBE_NAMESPACE} --timeout=300s
-                        kubectl wait --for=condition=ready pod -l app=course-service -n ${KUBE_NAMESPACE} --timeout=300s
-                        kubectl wait --for=condition=ready pod -l app=enrollment-service -n ${KUBE_NAMESPACE} --timeout=300s
+                        kubectl wait --for=condition=ready pod -l app=product-service -n ${KUBE_NAMESPACE} --timeout=300s
+                        kubectl wait --for=condition=ready pod -l app=order-service -n ${KUBE_NAMESPACE} --timeout=300s
                         
                         # Get service endpoints
                         kubectl get services -n ${KUBE_NAMESPACE}

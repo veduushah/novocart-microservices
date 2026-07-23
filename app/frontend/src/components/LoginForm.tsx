@@ -55,8 +55,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, isLogin }) =
           <div className="mx-auto h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-lg mb-4">
             <div className="text-2xl font-bold text-primary-600">⚡</div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">CloudBlitz</h1>
-          <p className="text-primary-100 text-sm">Accelerate your learning journey</p>
+          <h1 className="text-3xl font-bold text-white mb-2">NovaCart</h1>
+          <p className="text-primary-100 text-sm">Everyday shopping, made simple</p>
         </div>
 
         {/* Login Card */}
@@ -66,7 +66,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, isLogin }) =
               {isLogin ? 'Welcome back' : 'Get started'}
             </h2>
             <p className="text-gray-600 text-sm">
-              {isLogin ? 'Sign in to continue your learning' : 'Create your account to begin'}
+              {isLogin ? 'Sign in to continue shopping' : 'Create an account to start shopping'}
             </p>
           </div>
 
@@ -171,7 +171,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, isLogin }) =
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-primary-100 text-xs">
-            © 2024 CloudBlitz. Empowering students worldwide.
+            © 2026 NovaCart. Shop with confidence.
           </p>
         </div>
       </div>

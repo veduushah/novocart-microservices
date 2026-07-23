@@ -12,11 +12,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>in.cloudblitz</groupId>
+    <groupId>com.novacart</groupId>
     <artifactId>auth-service</artifactId>
     <version>1.0.0</version>
     <name>auth-service</name>
-    <description>Authentication service for CloudBlitz</description>
+    <description>Authentication service for NovaCart</description>
 
     <properties>
         <java.version>17</java.version>

@@ -1,12 +1,12 @@
-# CloudBlitz Backend - Kubernetes Deployment
+# NovaCart Backend - Kubernetes Deployment
 
-This directory contains Kubernetes manifests for deploying the CloudBlitz backend services to Amazon EKS.
+This directory contains Kubernetes manifests for deploying the NovaCart backend services to Amazon EKS.
 
 ## Architecture
 
 - **Auth Service**: User authentication and JWT token management
-- **Course Service**: Course CRUD operations
-- **Enrollment Service**: User course enrollments
+- **Product Service**: Product CRUD operations
+- **Order Service**: User product orders
 - **MongoDB**: External SaaS MongoDB (not deployed in cluster)
 
 ## Prerequisites
@@ -31,7 +31,7 @@ DOCKER_REGISTRY=your-docker-registry.com
 
 ```
 k8s/
-├── namespace.yaml          # CloudBlitz namespace
+├── namespace.yaml          # NovaCart namespace
 ├── configmap.yaml          # Shared configuration
 ├── ingress.yaml            # API routing and SSL
 └── README.md              # This file
@@ -42,12 +42,12 @@ backend/
 │   │   ├── deployment.yaml
 │   │   └── service.yaml
 │   └── Jenkinsfile
-├── course-service/
+├── product-service/
 │   ├── k8s/
 │   │   ├── deployment.yaml
 │   │   └── service.yaml
 │   └── Jenkinsfile
-└── enrollment-service/
+└── order-service/
     ├── k8s/
     │   ├── deployment.yaml
     │   └── service.yaml
@@ -59,25 +59,25 @@ backend/
 ### Auth Service
 - **Port**: 8081
 - **Health Check**: `/api/auth/health`
-- **Database**: `cb_auth`
+- **Database**: `novocart_auth`
 
-### Course Service
+### Product Service
 - **Port**: 8082
-- **Health Check**: `/api/courses/health`
-- **Database**: `cb_courses`
+- **Health Check**: `/api/products/health`
+- **Database**: `novocart_products`
 
-### Enrollment Service
+### Order Service
 - **Port**: 8083
-- **Health Check**: `/api/enroll/health`
-- **Database**: `cb_enrollments`
+- **Health Check**: `/api/orders/health`
+- **Database**: `novocart_orders`
 
 ## Ingress Configuration
 
-The ingress routes traffic from `api.cloudblitz.in` to the appropriate services:
+The ingress routes traffic from `api.novocart.in` to the appropriate services:
 
-- `https://api.cloudblitz.in/api/auth/*` → Auth Service
-- `https://api.cloudblitz.in/api/courses/*` → Course Service
-- `https://api.cloudblitz.in/api/enroll/*` → Enrollment Service
+- `https://api.novocart.in/api/auth/*` → Auth Service
+- `https://api.novocart.in/api/products/*` → Product Service
+- `https://api.novocart.in/api/orders/*` → Order Service
 
 ## Deployment Commands
 
@@ -92,8 +92,8 @@ kubectl apply -f k8s/configmap.yaml
 
 # Deploy services
 kubectl apply -f backend/auth-service/k8s/
-kubectl apply -f backend/course-service/k8s/
-kubectl apply -f backend/enrollment-service/k8s/
+kubectl apply -f backend/product-service/k8s/
+kubectl apply -f backend/order-service/k8s/
 
 # Deploy ingress
 kubectl apply -f k8s/ingress.yaml
@@ -103,18 +103,18 @@ kubectl apply -f k8s/ingress.yaml
 
 ```bash
 # Check pods
-kubectl get pods -n cloudblitz
+kubectl get pods -n novocart
 
 # Check services
-kubectl get services -n cloudblitz
+kubectl get services -n novocart
 
 # Check ingress
-kubectl get ingress -n cloudblitz
+kubectl get ingress -n novocart
 
 # Check logs
-kubectl logs -f deployment/auth-service -n cloudblitz
-kubectl logs -f deployment/course-service -n cloudblitz
-kubectl logs -f deployment/enrollment-service -n cloudblitz
+kubectl logs -f deployment/auth-service -n novocart
+kubectl logs -f deployment/product-service -n novocart
+kubectl logs -f deployment/order-service -n novocart
 ```
 
 ## Jenkins Pipeline
@@ -145,8 +145,8 @@ All services include:
 
 ## Security
 
-- **JWT Secret**: Shared across auth and enrollment services
-- **CORS**: Configured for `https://cloudblitz.in`
+- **JWT Secret**: Shared across auth and order services
+- **CORS**: Configured for `https://novocart.in`
 - **SSL/TLS**: Automatic certificate management with Let's Encrypt
 - **Network Policies**: Can be added for additional security
 
@@ -159,7 +159,7 @@ Each service is configured with:
 
 To scale a service:
 ```bash
-kubectl scale deployment auth-service --replicas=3 -n cloudblitz
+kubectl scale deployment auth-service --replicas=3 -n novocart
 ```
 
 ## Troubleshooting
@@ -175,13 +175,13 @@ kubectl scale deployment auth-service --replicas=3 -n cloudblitz
 
 ```bash
 # Describe pod for events
-kubectl describe pod <pod-name> -n cloudblitz
+kubectl describe pod <pod-name> -n novocart
 
 # Check service endpoints
-kubectl get endpoints -n cloudblitz
+kubectl get endpoints -n novocart
 
 # Port forward for local testing
-kubectl port-forward service/auth-service 8081:8081 -n cloudblitz
+kubectl port-forward service/auth-service 8081:8081 -n novocart
 ```
 
 ## Production Considerations

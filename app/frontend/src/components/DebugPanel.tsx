@@ -69,8 +69,8 @@ export const DebugPanel: React.FC = () => {
               <strong>Environment:</strong>
               <div className="ml-2 mt-1">
                 <div>AUTH_API: {import.meta.env.VITE_AUTH_API || 'undefined'}</div>
-                <div>COURSE_API: {import.meta.env.VITE_COURSE_API || 'undefined'}</div>
-                <div>ENROLL_API: {import.meta.env.VITE_ENROLL_API || 'undefined'}</div>
+                <div>PRODUCT_API: {import.meta.env.VITE_PRODUCT_API || 'undefined'}</div>
+                <div>ORDER_API: {import.meta.env.VITE_ORDER_API || 'undefined'}</div>
               </div>
             </div>
 

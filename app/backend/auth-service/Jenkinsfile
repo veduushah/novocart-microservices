@@ -7,8 +7,8 @@ pipeline {
         AWS_REGION = 'eu-west-1'
         EKS_CLUSTER_NAME = 'backend-dev-cluster'
         DOCKER_REGISTRY = '207837001318.dkr.ecr.eu-west-1.amazonaws.com'
-        IMAGE_NAME = 'cloudblitz/auth-service'
-        KUBE_NAMESPACE = 'cloudblitz'
+        IMAGE_NAME = 'novocart/auth-service'
+        KUBE_NAMESPACE = 'novocart'
     }
     
     stages {
@@ -135,7 +135,7 @@ pipeline {
                             kubectl create namespace ${KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
                             
                             # Update image tag in deployment
-                            sed -i 's|image: cloudblitz/auth-service:latest|image: ${DOCKER_IMAGE}|g' app/backend/auth-service/k8s/deployment.yaml
+                            sed -i 's|image: novocart/auth-service:latest|image: ${DOCKER_IMAGE}|g' app/backend/auth-service/k8s/deployment.yaml
                             
                             # Apply Kubernetes manifests
                             kubectl apply -f app/backend/auth-service/k8s/

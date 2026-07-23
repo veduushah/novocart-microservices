@@ -1,0 +1,16 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: order-service
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/novocart_orders}
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-change-me}
+
+logging:
+  level:
+    com.novacart.order: DEBUG

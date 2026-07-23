@@ -20,10 +20,10 @@ Before setting up the Jenkins pipeline, make sure you have:
 ### 1.1 Create S3 Bucket
 ```bash
 # Create S3 bucket for hosting
-aws s3 mb s3://cloudblitz-frontend-bucket --region us-east-1
+aws s3 mb s3://novocart-frontend-bucket --region us-east-1
 
 # Enable static website hosting
-aws s3 website s3://cloudblitz-frontend-bucket --index-document index.html --error-document index.html
+aws s3 website s3://novocart-frontend-bucket --index-document index.html --error-document index.html
 ```
 
 ### 1.2 Create CloudFront Distribution
@@ -67,7 +67,7 @@ Edit the Jenkinsfile and update these variables:
 ```groovy
 environment {
     AWS_REGION = 'us-east-1'                    // Your AWS region
-    S3_BUCKET = 'cloudblitz-frontend-bucket'    // Your S3 bucket name
+    S3_BUCKET = 'novocart-frontend-bucket'    // Your S3 bucket name
     CLOUDFRONT_DISTRIBUTION_ID = 'E1234567890ABC' // Your CloudFront distribution ID
 }
 ```
@@ -76,7 +76,7 @@ environment {
 
 ### 4.1 Create New Pipeline Job
 1. Go to Jenkins → New Item
-2. Enter job name: `cloudblitz-frontend-deploy`
+2. Enter job name: `novocart-frontend-deploy`
 3. Select "Pipeline" type
 4. Click OK
 
@@ -121,7 +121,7 @@ environment {
 ### 6.1 Check Deployment Status
 ```bash
 # Check S3 bucket contents
-aws s3 ls s3://cloudblitz-frontend-bucket/
+aws s3 ls s3://novocart-frontend-bucket/
 
 # Check CloudFront distribution status
 aws cloudfront get-distribution --id YOUR_DISTRIBUTION_ID
@@ -144,13 +144,13 @@ You can create separate pipelines for different environments:
 ```groovy
 // For staging
 environment {
-    S3_BUCKET = 'cloudblitz-frontend-staging'
+    S3_BUCKET = 'novocart-frontend-staging'
     CLOUDFRONT_DISTRIBUTION_ID = 'E1234567890STAGING'
 }
 
 // For production
 environment {
-    S3_BUCKET = 'cloudblitz-frontend-prod'
+    S3_BUCKET = 'novocart-frontend-prod'
     CLOUDFRONT_DISTRIBUTION_ID = 'E1234567890PROD'
 }
 ```

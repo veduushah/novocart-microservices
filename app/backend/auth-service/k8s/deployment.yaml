@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-service
-  namespace: cloudblitz
+  namespace: novocart
   labels:
     app: auth-service
     version: v1

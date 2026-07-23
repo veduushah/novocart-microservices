@@ -6,8 +6,8 @@ pipeline {
     environment {
         AWS_REGION = 'eu-west-1'
         EKS_CLUSTER_NAME = 'backend-dev-cluster'
-        KUBE_NAMESPACE = 'cloudblitz'
-        DOMAIN_NAME = 'api.junioraicoders.com'
+        KUBE_NAMESPACE = 'novocart'
+        DOMAIN_NAME = 'api.novocart.in'
     }
     
     stages {
@@ -76,7 +76,7 @@ pipeline {
                             kubectl apply -f app/k8s/configmap.yaml
                             
                             # Verify configmap
-                            kubectl get configmap cloudblitz-config -n ${KUBE_NAMESPACE}
+                            kubectl get configmap novocart-config -n ${KUBE_NAMESPACE}
                         """
                     }
                 }
@@ -96,10 +96,10 @@ pipeline {
                             kubectl apply -f app/k8s/ingress.yaml
                                                         
                             # Get ingress details
-                            kubectl get ingress cloudblitz-api-ingress -n ${KUBE_NAMESPACE}
+                            kubectl get ingress novocart-api-ingress -n ${KUBE_NAMESPACE}
                             
                             # Get ALB details
-                            kubectl describe ingress cloudblitz-api-ingress -n ${KUBE_NAMESPACE}
+                            kubectl describe ingress novocart-api-ingress -n ${KUBE_NAMESPACE}
                         """
                     }
                 }
@@ -166,7 +166,7 @@ pipeline {
                         # Get error details
                         echo "=== Error Details ==="
                         kubectl get events -n ${KUBE_NAMESPACE} --sort-by='.lastTimestamp'
-                        kubectl describe ingress cloudblitz-api-ingress -n ${KUBE_NAMESPACE}
+                        kubectl describe ingress novocart-api-ingress -n ${KUBE_NAMESPACE}
                     """
                 }
             }

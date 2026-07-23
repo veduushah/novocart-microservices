@@ -109,5 +109,5 @@ class ApiClient {
 
 // Create API clients for each service
 export const authApi = new ApiClient(import.meta.env.VITE_AUTH_API);
-export const courseApi = new ApiClient(import.meta.env.VITE_COURSE_API);
-export const enrollApi = new ApiClient(import.meta.env.VITE_ENROLL_API);
+export const productApi = new ApiClient(import.meta.env.VITE_PRODUCT_API);
+export const orderApi = new ApiClient(import.meta.env.VITE_ORDER_API);

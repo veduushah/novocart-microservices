@@ -2,7 +2,7 @@ services:
   # MongoDB Database
   mongo:
     image: mongo:7
-    container_name: cloudblitz-mongo
+    container_name: novocart-mongo
     ports:
       - "27017:27017"
     environment:
@@ -11,57 +11,57 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - cloudblitz-network
+      - novocart-network
 
   # Auth Service
   auth-service:
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
-    container_name: cloudblitz-auth-service
+    container_name: novocart-auth-service
     ports:
       - "8081:8081"
     environment:
-      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017/cb_auth?authSource=admin
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017/novocart_auth?authSource=admin
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
       SERVER_PORT: 8081
     depends_on:
       - mongo
     networks:
-      - cloudblitz-network
+      - novocart-network
 
-  # Course Service
-  course-service:
+  # Product Service
+  product-service:
     build:
-      context: ./backend/course-service
+      context: ./backend/product-service
       dockerfile: Dockerfile
-    container_name: cloudblitz-course-service
+    container_name: novocart-product-service
     ports:
       - "8082:8082"
     environment:
-      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017/cb_courses?authSource=admin
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017/novocart_products?authSource=admin
       SERVER_PORT: 8082
     depends_on:
       - mongo
     networks:
-      - cloudblitz-network
+      - novocart-network
 
-  # Enrollment Service
-  enrollment-service:
+  # Order Service
+  order-service:
     build:
-      context: ./backend/enrollment-service
+      context: ./backend/order-service
       dockerfile: Dockerfile
-    container_name: cloudblitz-enrollment-service
+    container_name: novocart-order-service
     ports:
       - "8083:8083"
     environment:
-      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017/cb_enrollments?authSource=admin
+      MONGO_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongo:27017/novocart_orders?authSource=admin
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
       SERVER_PORT: 8083
     depends_on:
       - mongo
     networks:
-      - cloudblitz-network
+      - novocart-network
 
   # Frontend
   frontend:
@@ -70,21 +70,21 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_AUTH_API: http://localhost:8081/api/auth
-        VITE_COURSE_API: http://localhost:8082/api/courses
-        VITE_ENROLL_API: http://localhost:8083/api/enroll
-    container_name: cloudblitz-frontend
+        VITE_PRODUCT_API: http://localhost:8082/api/products
+        VITE_ORDER_API: http://localhost:8083/api/orders
+    container_name: novocart-frontend
     ports:
       - "5173:5173"
     depends_on:
       - auth-service
-      - course-service
-      - enrollment-service
+      - product-service
+      - order-service
     networks:
-      - cloudblitz-network
+      - novocart-network
 
 volumes:
   mongo_data:
 
 networks:
-  cloudblitz-network:
+  novocart-network:
     driver: bridge

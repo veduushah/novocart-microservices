@@ -1,13 +1,13 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cloudblitz-api-ingress
-  namespace: cloudblitz
+  name: novocart-api-ingress
+  namespace: novocart
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/load-balancer-name: cloudblitz-api-alb
+    alb.ingress.kubernetes.io/load-balancer-name: novocart-api-alb
     alb.ingress.kubernetes.io/healthcheck-path: /api/auth/health
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
@@ -18,7 +18,7 @@ metadata:
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-west-1:271376211486:certificate/7bf255fe-d0e2-41ef-a01a-17b214d74120 #eu-west-1
 spec:
   rules:
-  - host: api.thecloudnine.in
+  - host: api.novocart.in
     http:
       paths:
       - path: /api/auth
@@ -28,17 +28,17 @@ spec:
             name: auth-service
             port:
               number: 8081
-      - path: /api/courses
+      - path: /api/products
         pathType: Prefix
         backend:
           service:
-            name: course-service
+            name: product-service
             port:
               number: 8082
-      - path: /api/enroll
+      - path: /api/orders
         pathType: Prefix
         backend:
           service:
-            name: enrollment-service
+            name: order-service
             port:
               number: 8083

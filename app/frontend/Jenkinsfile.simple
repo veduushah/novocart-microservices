@@ -4,7 +4,7 @@ pipeline {
     // Environment variables - Update these with your actual values
     environment {
         AWS_REGION = 'us-east-1'                    // Your AWS region
-        S3_BUCKET = 'cloudblitz-frontend-bucket'    // Your S3 bucket name
+        S3_BUCKET = 'novocart-frontend-bucket'    // Your S3 bucket name
         CLOUDFRONT_DISTRIBUTION_ID = 'E1234567890ABC' // Your CloudFront distribution ID
     }
     
@@ -55,9 +55,9 @@ pipeline {
                     cd frontend
                     
                     # Set environment variables for the build
-                    export VITE_AUTH_API="https://api.junioraicoders.com/api/auth"
-                    export VITE_COURSE_API="https://api.junioraicoders.com/api/courses"
-                    export VITE_ENROLL_API="https://api.junioraicoders.com/api/enroll"
+                    export VITE_AUTH_API="https://api.novocart.in/api/auth"
+                    export VITE_PRODUCT_API="https://api.novocart.in/api/products"
+                    export VITE_ORDER_API="https://api.novocart.in/api/orders"
                     
                     npm run build
                     

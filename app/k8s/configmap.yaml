@@ -1,25 +1,25 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cloudblitz-config
-  namespace: cloudblitz
+  name: novocart-config
+  namespace: novocart
 data:
-  # MongoDB Configuration (non-sensitive — credentials live in cloudblitz-secrets)
+  # MongoDB Configuration (non-sensitive — credentials live in novocart-secrets)
   MONGO_HOST: "your-cluster.mongodb.net"
   MONGO_PORT: "27017"
   MONGO_AUTH_SOURCE: "admin"
 
   # Database Names
-  AUTH_DB: "cb_auth"
-  COURSE_DB: "cb_courses"
-  ENROLLMENT_DB: "cb_enrollments"
+  AUTH_DB: "novocart_auth"
+  PRODUCT_DB: "novocart_products"
+  ORDER_DB: "novocart_orders"
 
   # Service Ports
   AUTH_PORT: "8081"
-  COURSE_PORT: "8082"
-  ENROLLMENT_PORT: "8083"
+  PRODUCT_PORT: "8082"
+  ORDER_PORT: "8083"
 
   # Environment
   SPRING_PROFILES_ACTIVE: "production"
   LOGGING_LEVEL_ROOT: "INFO"
-  LOGGING_LEVEL_COM_CLOUDBLITZ: "DEBUG"
+  LOGGING_LEVEL_COM_NOVOCART: "DEBUG"
