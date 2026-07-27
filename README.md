@@ -9,32 +9,31 @@
 A production-style e-commerce application built using a microservices architecture and deployed on an AWS EC2 instance using Docker and Docker Compose. The project demonstrates containerized deployment, service orchestration, inter-service communication, and end-to-end application validation.
 
 </div>
-
----
-
 # 📸 Application Preview
 
-## 🔐 Login Page
+<table align="center">
+<tr>
+<td align="center">
+<img src="images/Novocart%20SS1.png" width="220"/><br>
+<b>🔐 Login</b>
+</td>
 
-![Login](images/Novocart%20SS1.png)
+<td align="center">
+<img src="images/novocart%20ss%204.png" width="220"/><br>
+<b>👋 Sign In</b>
+</td>
 
----
+<td align="center">
+<img src="images/novocart%20ss3.png" width="220"/><br>
+<b>🛍️ Home</b>
+</td>
 
-## 👋 Welcome Back
-
-![Welcome](images/novocart%20ss%204.png)
-
----
-
-## 🛍️ Home Dashboard
-
-![Dashboard](images/novocart%20ss3.png)
-
----
-
-## 📦 Orders
-
-![Orders](images/novocart%20ss2.png)
+<td align="center">
+<img src="images/novocart%20ss2.png" width="220"/><br>
+<b>📦 Orders</b>
+</td>
+</tr>
+</table>
 
 ---
 
